@@ -1,0 +1,61 @@
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.NoSuchElementException;
+
+import java.util.List;
+
+public class LinkedInHospitalPeopleScraper {
+    public static void main(String[] args) throws InterruptedException {
+        // Set path to ChromeDriver executable
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+
+        WebDriver driver = new ChromeDriver();
+
+        try {
+            // Navigate to LinkedIn login page
+            driver.get("https://www.linkedin.com/login");
+            Thread.sleep(2000);
+
+            // Log in with your credentials
+            driver.findElement(By.id("username")).sendKeys("your.email@domain.com"); // <-- your LinkedIn email
+            driver.findElement(By.id("password")).sendKeys("your_password");         // <-- your LinkedIn password
+            driver.findElement(By.xpath("//button[@type='submit']")).click();
+            Thread.sleep(5000);
+
+            // Go to people search for 'hospital'
+            driver.get("https://www.linkedin.com/search/results/people/?keywords=hospital");
+            Thread.sleep(5000);
+
+            int page = 1;
+            boolean hasNextPage = true;
+
+            while (hasNextPage) {
+                System.out.println("------ Page " + page + " ------");
+
+                // Find and print all profile names on current page
+                List<WebElement> names = driver.findElements(By.cssSelector("span.entity-result__title-text--black"));
+                for (WebElement profile : names) {
+                    System.out.println(profile.getText().trim());
+                }
+
+                // Try to locate and click the "Next" button
+                try {
+                    WebElement nextBtn = driver.findElement(By.xpath("//button[@aria-label='Next']"));
+                    if (nextBtn.isEnabled()) {
+                        nextBtn.click();
+                        Thread.sleep(4000); // Wait for the next page
+                        page++;
+                    } else {
+                        hasNextPage = false;
+                    }
+                } catch (NoSuchElementException e) {
+                    hasNextPage = false; // No more pages
+                }
+            }
+        } finally {
+            driver.quit(); // Always quit driver
+        }
+    }
+}
